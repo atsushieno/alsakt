@@ -5,8 +5,6 @@ import dev.atsushieno.alsakt.javacpp.global.Alsa
 import dev.atsushieno.alsakt.javacpp.snd_seq_port_info_t
 import org.bytedeco.javacpp.BytePointer
 
-typealias AlsaPortCapabilities = Int
-
 class AlsaPortInfo : AutoCloseable {
     companion object {
         const val PortSystemTimer = 0

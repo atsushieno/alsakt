@@ -6,8 +6,6 @@ import dev.atsushieno.alsakt.javacpp.global.Alsa
 import dev.atsushieno.alsakt.javacpp.snd_seq_client_info_t
 import org.bytedeco.javacpp.BytePointer
 
-typealias AlsaClientType = Int
-
 class AlsaClientInfo : AutoCloseable {
     companion object {
         private fun malloc(): snd_seq_client_info_t? {
@@ -46,7 +44,7 @@ class AlsaClientInfo : AutoCloseable {
         get() = Alsa.snd_seq_client_info_get_client (handle)
         set(value) = Alsa.snd_seq_client_info_set_client (handle, value)
 
-    val clientType: AlsaClientType
+    val clientType: Int
         get () = Alsa.snd_seq_client_info_get_type (handle)
 
     private var namePtr: BytePointer? = null

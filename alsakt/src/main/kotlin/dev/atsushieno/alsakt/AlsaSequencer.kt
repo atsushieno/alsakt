@@ -14,14 +14,9 @@ import org.bytedeco.javacpp.Loader.sizeof
 import org.bytedeco.javacpp.PointerPointer
 import java.nio.ByteBuffer
 
-typealias AlsaIOType = Int
-typealias AlsaIOMode = Int
-typealias AlsaSequencerType = Int
-typealias AlsaSequencerEventType = Int
-
 @Suppress("unused")
 class AlsaSequencer(
-    val ioType: AlsaIOType, ioMode: AlsaIOMode,// Pointer
+    val ioType: Int, ioMode: Int,
     val driverName: String = "default"
 ) : AutoCloseable {
 
@@ -51,7 +46,7 @@ class AlsaSequencer(
     val name :String
         get() = Alsa.snd_seq_name(seq).string
 
-    val sequencerType: AlsaSequencerType
+    val sequencerType: Int
         get() = Alsa.snd_seq_type(seq)
 
     fun setNonBlockingMode(toNonBlockingMode: Boolean) {
@@ -100,7 +95,7 @@ class AlsaSequencer(
 
     private var portNameHandle : BytePointer? = null
 
-    fun createSimplePort(name: String?, caps: AlsaPortCapabilities, type: Int): Int {
+    fun createSimplePort(name: String?, caps: Int, type: Int): Int {
         portNameHandle?.deallocate()
         portNameHandle = if (name == null) null else BytePointer(name)
         return Alsa.snd_seq_create_simple_port(seq, portNameHandle, caps, type)
@@ -351,7 +346,7 @@ class AlsaSequencerEvent {
     // Therefore it is commented out, but that will result in inconsistent sizing between managed and unmanaged.
     //anonymous_type_3 data;
 
-    val eventType: AlsaSequencerEventType
+    val eventType: Int
         get() = type.toInt()
 }
 

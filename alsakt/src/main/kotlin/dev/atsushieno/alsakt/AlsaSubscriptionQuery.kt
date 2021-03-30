@@ -4,8 +4,6 @@ package dev.atsushieno.alsakt
 import dev.atsushieno.alsakt.javacpp.global.Alsa
 import dev.atsushieno.alsakt.javacpp.snd_seq_query_subscribe_t
 
-typealias AlsaSubscriptionQueryType = Int
-
 class AlsaSubscriptionQuery(var handle: snd_seq_query_subscribe_t?, val freeFunc: (snd_seq_query_subscribe_t?) -> Unit) {
     companion object {
         private fun malloc(): snd_seq_query_subscribe_t? {
@@ -41,7 +39,7 @@ class AlsaSubscriptionQuery(var handle: snd_seq_query_subscribe_t?, val freeFunc
         get() = Alsa.snd_seq_query_subscribe_get_index (handle)
          set(value) = Alsa.snd_seq_query_subscribe_set_index (handle, value)
 
-     var type: AlsaSubscriptionQueryType
+     var type: Int
         get() = Alsa.snd_seq_query_subscribe_get_type (handle)
          set(value) = Alsa.snd_seq_query_subscribe_set_type (handle, value)
 
