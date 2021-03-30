@@ -1,13 +1,3 @@
-plugins {
-    id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.4.21'
-    id 'org.bytedeco.gradle-javacpp-build' version '1.5.5'
-    id 'maven-publish'
-}
-
-ext {
-    javacppPlatform = 'linux-x86_64' // ugh, can we cross-compile for ,linux-x86,linux-arm64,linux-arm32 as well?
-}
 
 group 'dev.atsushieno'
 version '0.1.0'
@@ -16,44 +6,3 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    api "org.bytedeco:javacpp:1.5.5"
-    implementation "org.jetbrains.kotlin:kotlin-stdlib"
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
-}
-
-tasks.withType(org.bytedeco.gradle.javacpp.BuildTask) {
-    // set here default values for all build tasks below, typically just includePath and linkPath,
-    // but also properties to set the path to the NDK and its compiler in the case of Android
-    includePath = ['/usr/include', '/usr/include/alsa'] // It is likely dependent of your Linux desktop distro.
-}
-
-javacppBuildCommand {
-    // typically set here the buildCommand to the script that fills up includePath and linkPath
-}
-
-javacppBuildParser {
-    // typically set here the classOrPackageNames to class names implementing InfoMap
-    classOrPackageNames 'alsakt_presets.Alsa'
-}
-
-javacppBuildCompiler {
-    // typically set here boolean flags like copyLibs
-}
-
-test {
-    useJUnitPlatform()
-}
-
-afterEvaluate {
-    publishing {
-        publications {
-            maven(MavenPublication) {
-                groupId = group
-                artifactId = "alsakt"
-                from components.java
-            }
-        }
-    }
-}

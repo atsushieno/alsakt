@@ -14,7 +14,8 @@ import org.bytedeco.javacpp.tools.*;
             value = {"linux-x86", "linux-x86_64"},
             // This is so far a limited set of header files which is enough for ktmidi.
             include = {
-"asoundlib.h",
+"dummy_poll.h",
+//"asoundlib.h",
 "asoundef.h",
 "version.h",
 "global.h",
@@ -72,11 +73,11 @@ public class Alsa implements InfoMapper {
 
     public void map(InfoMap infoMap) {
         infoMap
-            .put(new Info("ATTRIBUTE_UNUSED").skip())
+            .put(new Info("__inline__").cppTypes().annotations())
+            .put(new Info("inline").cppTypes().annotations())
+            .put(new Info("ATTRIBUTE_UNUSED").cppTypes().annotations())
 
-            .put(new Info("pollfd").skip()) // FIXME: we will need this
-
-            .put(new Info("!defined(DOXYGEN) && !defined(SWIG)").define(false))            
+            .put(new Info("!defined(DOXYGEN) && !defined(SWIG)").define(false))
 
             .put(new Info("snd_config_iterator_first").skip()) // used only in a macro
             .put(new Info("snd_config_iterator_next").skip()) // used only in a macro

@@ -1,2 +1,3 @@
 rootProject.name = 'alsakt'
+include ':alsakt-javacpp', ':alsakt'
 
