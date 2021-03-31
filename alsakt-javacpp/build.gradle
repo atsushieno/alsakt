@@ -16,6 +16,12 @@ repositories {
     mavenCentral()
 }
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(8))
+    }
+}
+
 dependencies {
     api "org.bytedeco:javacpp:1.5.5"
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
