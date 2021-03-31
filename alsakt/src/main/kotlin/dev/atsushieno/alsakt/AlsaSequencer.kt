@@ -10,6 +10,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.bytedeco.javacpp.BytePointer
+import org.bytedeco.javacpp.Loader
 import org.bytedeco.javacpp.Loader.sizeof
 import org.bytedeco.javacpp.PointerPointer
 import java.nio.ByteBuffer
@@ -20,7 +21,7 @@ class AlsaSequencer(
     val driverName: String = "default"
 ) : AutoCloseable {
 
-    private var seq: snd_seq_t? = null
+    private val seq: snd_seq_t
     private var driverNameHandle : BytePointer? = null
 
     internal val sequencerHandle : snd_seq_t?
@@ -37,10 +38,8 @@ class AlsaSequencer(
         portNameHandle = null
         nameHandle?.deallocate()
         nameHandle = null
-        if (seq != null) {
+        if (seq != null)
             Alsa.snd_seq_close(seq)
-            seq = null
-        }
     }
 
     val name :String
@@ -188,7 +187,7 @@ class AlsaSequencer(
         if (midiEventParserOutput == null) {
             val ptr = snd_midi_event_t()
             Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
-            midiEventParserOutput = ptr.getPointer()
+            midiEventParserOutput = ptr
         }
 
         val ev = snd_seq_event_t(eventBufferOutput)
@@ -228,7 +227,7 @@ class AlsaSequencer(
         if (midiEventParserInput == null) {
             val ptr = snd_midi_event_t()
             Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
-            midiEventParserInput = ptr.getPointer()
+            midiEventParserInput = ptr
         }
     }
 
@@ -248,7 +247,7 @@ class AlsaSequencer(
                 midiEventParserInput,
                 ByteBuffer.wrap(data, index + received, data.size - index - received),
                 (count - received).toLong(),
-                sevt.getPointer()
+                sevt
             )
             if (converted < 0)
                 throw AlsaException(converted.toInt())
@@ -305,29 +304,40 @@ class AlsaSequencer(
         const val ClientSystem = 0
         const val POLLIN = 1
 
-        private val seq_evt_size = sizeof(snd_seq_event_t::class.java)
-        private val seq_evt_off_source_port =
-            snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "source") +
-                    snd_seq_event_t.offsetof(snd_seq_addr_t::class.java, "port").toLong()
-        private val seq_evt_off_dest_client =
-            snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "dest") +
-                    snd_seq_event_t.offsetof(snd_seq_addr_t::class.java, "client").toLong()
-        private val seq_evt_off_dest_port =
-            snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "dest") +
-                    snd_seq_event_t.offsetof(snd_seq_addr_t::class.java, "port").toLong()
-        private val seq_evt_off_queue = snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "queue").toLong()
+        private val seq_evt_size: Int
+        private val seq_evt_off_source_port: Long
+        private val seq_evt_off_dest_client: Long
+        private val seq_evt_off_dest_port: Long
+        private val seq_evt_off_queue: Long
 
         const val AddressUnknown = 253
         const val AddressSubscribers = 254
         const val AddressBroadcast = 255
 
         const val QueueDirect = 253
+
+        init {
+            Loader.load(snd_seq_t::class.java) // FIXME: this should not be required...
+            seq_evt_size = sizeof(snd_seq_event_t::class.java)
+            seq_evt_off_source_port =
+                snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "source") +
+                        snd_seq_event_t.offsetof(snd_seq_addr_t::class.java, "port").toLong()
+            seq_evt_off_dest_client =
+                snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "dest") +
+                        snd_seq_event_t.offsetof(snd_seq_addr_t::class.java, "client").toLong()
+            seq_evt_off_dest_port =
+                snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "dest") +
+                        snd_seq_event_t.offsetof(snd_seq_addr_t::class.java, "port").toLong()
+            seq_evt_off_queue = snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "queue").toLong()
+        }
     }
 
     init {
-        val err = Alsa.snd_seq_open(seq, driverName, ioType, ioMode)
+        val ptr = snd_seq_t()
+        val err = Alsa.snd_seq_open(ptr, driverName, ioType, ioMode)
         if (err != 0)
             throw AlsaException(err)
+        seq = ptr
     }
 }
 

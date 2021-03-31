@@ -9,7 +9,7 @@ class AlsaSubscriptionQuery(var handle: snd_seq_query_subscribe_t?, val freeFunc
         private fun malloc(): snd_seq_query_subscribe_t? {
             val ptr = snd_seq_query_subscribe_t()
             Alsa.snd_seq_query_subscribe_malloc(ptr)
-            return ptr.getPointer()
+            return ptr
         }
 
         private fun free(handle: snd_seq_query_subscribe_t?) {

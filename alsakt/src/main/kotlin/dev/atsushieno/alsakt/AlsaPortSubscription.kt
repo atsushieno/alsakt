@@ -29,7 +29,7 @@ class AlsaPortSubscription {
         fun malloc(): snd_seq_port_subscribe_t? {
             val outHandle = snd_seq_port_subscribe_t()
             Alsa.snd_seq_port_subscribe_malloc(outHandle)
-            return outHandle.getPointer()
+            return outHandle
         }
 
         fun free(handle: snd_seq_port_subscribe_t?) {

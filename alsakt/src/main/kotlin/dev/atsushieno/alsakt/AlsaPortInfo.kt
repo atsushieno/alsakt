@@ -13,7 +13,7 @@ class AlsaPortInfo : AutoCloseable {
         private fun malloc(): snd_seq_port_info_t? {
             val outHandle = snd_seq_port_info_t()
             Alsa.snd_seq_port_info_malloc(outHandle)
-            return outHandle.getPointer()
+            return outHandle
         }
 
         private fun free(handle: snd_seq_port_info_t?) {

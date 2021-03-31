@@ -11,7 +11,7 @@ class AlsaClientInfo : AutoCloseable {
         private fun malloc(): snd_seq_client_info_t? {
             val outHandle = snd_seq_client_info_t()
             Alsa.snd_seq_client_info_malloc(outHandle)
-            return outHandle.getPointer()
+            return outHandle
         }
 
         private fun free(handle: snd_seq_client_info_t?) {
