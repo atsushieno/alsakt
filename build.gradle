@@ -1,7 +1,4 @@
 
-group 'dev.atsushieno'
-version '0.1.0'
-
 repositories {
     mavenCentral()
 }
