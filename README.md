@@ -4,6 +4,8 @@ alsakt is an ALSA JNI binding and Kotlin OO-wrapper library.
 It is based on [JavaCPP](https://github.com/bytedeco/javacpp) technology.
 The OO-wrapper part is based on [alsa-sharp](https://github.com/atsushieno/alsa-sharp) project.
 
+alsakt is created mostly for use in [ktmidi](https://github.com/atsushieno/ktmidi) project.
+
 ## Building
 
 It is a Gradle Kotlin/JVM project and `./gradlew build` would work, but
