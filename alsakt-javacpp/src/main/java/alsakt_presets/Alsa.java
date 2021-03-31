@@ -83,12 +83,27 @@ public class Alsa implements InfoMapper {
             .put(new Info("snd_config_iterator_next").skip()) // used only in a macro
             .put(new Info("snd_config_iterator_end").skip()) // used only in a macro
             .put(new Info("snd_config_iterator_entry").skip()) // used only in a macro
-            
+
+            // It is somewhat tricky; these macros define libdl-related ALSA functions, which are
+            // by default bound as declared functions in Java but the actual target functions don't exist
+            // (somehow) and causes unresolved symbols... (contd.)
             .put(new Info("SND_CONFIG_DLSYM_VERSION_EVALUATE").skip())
             .put(new Info("SND_CONFIG_DLSYM_VERSION_HOOK").skip())
             .put(new Info("SND_TIMER_DLSYM_VERSION").skip())
             .put(new Info("SND_TIMER_QUERY_DLSYM_VERSION").skip())
             .put(new Info("SND_SEQ_DLSYM_VERSION").skip())
+            // ...however, fixing macros does not seem enough. There are actually mapped symbols that are
+            // used and then expected to exist within referring libraries. `snd_dlsym_start` seems to be
+            // one of such a function that triggers this issue.
+            // This, when bound as a glue in `libjniAlsa.so`, references the declared macro above, and
+            // if those macros are declared (not skipped), then this function and relevant binding glue
+            // is generated, resulting in missing `_dlsym_config_evaluate_001` symbol and then causes
+            // UnsatisfiedLinkError at run-time.
+            //
+            // It looks as if we were missing `libjniAlsa.so` in the loader target paths when it is
+            // being loaded by javacpp Loader. How confusing! You can examine if the shared library loads
+            // without problem by calling `System.load(full_path_to_so)`.
+            .put(new Info("snd_dlsym_start").skip())
 
             .put(new Info("snd_shm_area").skip()) // FIXME?
             .put(new Info("snd_seq_real_time").skip()) // FIXME?
