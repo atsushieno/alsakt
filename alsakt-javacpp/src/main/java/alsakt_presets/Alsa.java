@@ -63,7 +63,7 @@ import org.bytedeco.javacpp.tools.*;
 */
 },
             link = "asound",
-            preload = "libasound"
+            preload = "asound"
         )
 
     }
