@@ -33,7 +33,7 @@ dependencies {
 tasks.withType(org.bytedeco.gradle.javacpp.BuildTask) {
     // set here default values for all build tasks below, typically just includePath and linkPath,
     // but also properties to set the path to the NDK and its compiler in the case of Android
-    includePath = ['/usr/include', '/usr/include/alsa', project.projectDir.toString() + '/dummy_headers'] // It is likely dependent of your Linux desktop distro.
+    includePath = [project.projectDir.toString() + '/alsa-headers', project.projectDir.toString() + '/dummy_headers'] // It is likely dependent of your Linux desktop distro.
     deleteJniFiles false
 }
 

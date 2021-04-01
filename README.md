@@ -15,5 +15,7 @@ depending on the distribution you may have to edit [build.gradle](alsakt-javacpp
 
 alsakt is released under the MIT license.
 
+ALSA headers in `alsakt-javacpp/alsa-headers` are copied from [ALSA](https://github.com/alsa-project/alsa-lib) headers distributed as part of Ubuntu 20.04, which is released under the LGPL v2.1 license.
+
 [JavaCPP](https://github.com/bytedeco/javacpp/) is distributed under Apache V2 license.
 
