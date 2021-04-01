@@ -32,5 +32,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: alsakt-artifacts
-        path: */build/libs/*.jar
+        path: |
+          alsakt-javacpp/build/libs/*.jar
+          alsakt/build/libs/*.jar
 
