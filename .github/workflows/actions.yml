@@ -30,6 +30,7 @@ jobs:
     - name: build
       run: ./gradlew --warning-mode all publish
       env:
+        USERNAME: atsushieno
         GITHUB_TOKEN: ${secrets.MAVEN_PAT}
     - name: upload artifact
       if: success()
