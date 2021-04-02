@@ -30,7 +30,7 @@ jobs:
     - name: build
       run: ./gradlew publish
       env:
-        GITHUB_TOKEN=${secrets.MAVEN_PAT}
+        GITHUB_TOKEN: ${secrets.MAVEN_PAT}
     - name: upload artifact
       if: success()
       uses: actions/upload-artifact@v2
