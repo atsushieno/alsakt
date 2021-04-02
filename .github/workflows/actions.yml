@@ -25,8 +25,12 @@ jobs:
         echo y | sudo apt-get install doxygen cmake ninja-build libasound2-dev
     - name: stupid NDK setup workaround for GitHub Actions
       run: sudo mkdir -p /usr/local/lib/android/sdk/ndk && sudo chmod 777 /usr/local/lib/android/sdk/ndk
+    - name: copy settings
+      run: mkdir -p ~/.m2 && cp .github/workflows/m2_settings.xml ~/.m2/settings.xml
     - name: build
-      run: ./gradlew build jar javacppPlatformSourcesJar kotlinSourcesJar
+      run: ./gradlew publish
+      env:
+        GITHUB_TOKEN=${secrets.MAVEN_PAT}
     - name: upload artifact
       if: success()
       uses: actions/upload-artifact@v2
