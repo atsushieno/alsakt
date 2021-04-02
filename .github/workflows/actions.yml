@@ -28,7 +28,7 @@ jobs:
     - name: copy settings
       run: mkdir -p ~/.m2 && cp .github/workflows/m2_settings.xml ~/.m2/settings.xml
     - name: build
-      run: ./gradlew publish
+      run: ./gradlew --warning-mode all publish
       env:
         GITHUB_TOKEN: ${secrets.MAVEN_PAT}
     - name: upload artifact
