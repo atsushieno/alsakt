@@ -1,18 +1,18 @@
 package dev.atsushieno.alsakt
 import dev.atsushieno.alsakt.javacpp.global.Alsa
+import dev.atsushieno.alsakt.javacpp.global.HackyPoll
 import dev.atsushieno.alsakt.javacpp.pollfd
 import dev.atsushieno.alsakt.javacpp.snd_midi_event_t
 import dev.atsushieno.alsakt.javacpp.snd_seq_addr_t
 import dev.atsushieno.alsakt.javacpp.snd_seq_event_t
 import dev.atsushieno.alsakt.javacpp.snd_seq_t
 import dev.atsushieno.alsakt.javacpp.snd_seq_timestamp_t
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.launch
 import org.bytedeco.javacpp.BytePointer
 import org.bytedeco.javacpp.Loader
 import org.bytedeco.javacpp.Loader.sizeof
-import org.bytedeco.javacpp.PointerPointer
 import java.nio.ByteBuffer
 
 @Suppress("unused")
@@ -272,7 +272,7 @@ class AlsaSequencer(
         eventLoopBuffer = buffer
         inputTimeout = timeout
         this.onReceived = onReceived
-        eventLoopTask = MainScope().launch { eventLoop (applicationPort) }
+        eventLoopTask = GlobalScope.launch { eventLoop (applicationPort) }
     }
 
     fun stopListening() {
@@ -290,7 +290,7 @@ class AlsaSequencer(
         if (ret < 0)
             throw AlsaException (ret)
         while (!eventLoopStopped) {
-            val rt = Alsa.poll(fd, count.toLong(), inputTimeout)
+            val rt = HackyPoll.poll(fd, count.toLong(), inputTimeout)
             if (rt > 0) {
                 val len = receive(port, eventLoopBuffer, 0, eventLoopBuffer.size)
                 onReceived(eventLoopBuffer, 0, len)
