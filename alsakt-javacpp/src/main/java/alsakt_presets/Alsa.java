@@ -14,7 +14,10 @@ import org.bytedeco.javacpp.tools.*;
             value = {"linux-x86", "linux-x86_64"},
             // This is so far a limited set of header files which is enough for ktmidi.
             include = {
+// We'd like to remove this line, but adding them results in missing related functions
+//  which is no-go. It seems the resulting library still builds, so we leave them as is. Also...(contd.)
 "dummy_poll.h",
+
 //"asoundlib.h",
 "asoundef.h",
 "version.h",
@@ -73,6 +76,10 @@ public class Alsa implements InfoMapper {
 
     public void map(InfoMap infoMap) {
         infoMap
+            // (contd.) cannot add these lines...
+            // .put(new Info("pollfd").skip()) // it is bound at DummyPoll.java, not here.
+            // .put(new Info("poll").skip()) // it is bound at DummyPoll.java, not here.
+
             .put(new Info("__inline__").cppTypes().annotations())
             .put(new Info("inline").cppTypes().annotations())
             .put(new Info("ATTRIBUTE_UNUSED").cppTypes().annotations())

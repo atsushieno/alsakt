@@ -10,7 +10,7 @@ ext {
 }
 
 group 'dev.atsushieno'
-version '0.1.3'
+version '0.1.4'
 
 repositories {
     mavenCentral()
@@ -43,7 +43,7 @@ javacppBuildCommand {
 
 javacppBuildParser {
     // typically set here the classOrPackageNames to class names implementing InfoMap
-    classOrPackageNames 'alsakt_presets.Alsa'
+    classOrPackageNames = ['alsakt_presets.Alsa', 'libc_presets.HackyPoll']
 }
 
 javacppBuildCompiler {
