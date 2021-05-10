@@ -4,7 +4,7 @@ tasks.register('javadocJar', Jar) {
     from javadoc.destinationDir
 }
 tasks.register('sourceJar', Jar) {
-    archiveClassifier.set('source')
+    archiveClassifier.set('sources')
     from sourceSets.main.allSource
 }
 
