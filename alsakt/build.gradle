@@ -2,10 +2,11 @@ plugins {
     id 'java'
     id 'org.jetbrains.kotlin.jvm' version '1.4.32'
     id 'maven-publish'
+    id 'signing'
 }
 
 group 'dev.atsushieno'
-version '0.1.4'
+version '0.1.4.1'
 
 repositories {
     mavenCentral()
@@ -39,8 +40,31 @@ test {
 }
 
 afterEvaluate {
+
     publishing {
         publications {
+            maven(MavenPublication) {
+                pom {
+                    name.set('alsakt')
+                    description.set('(partial) OO-Wrapper library around ALSA JNI binding.')
+                    url.set('https://github.com/atsushieno/alsakt')
+                    scm { url.set('https://github.com/atsushieno/alsakt') }
+                    licenses {
+                        license {
+                            name.set('the MIT License')
+                            url.set('https://github.com/atsushieno/alsakt/blob/main/LICENSE')
+                        }
+                    }
+                    developers {
+                        developer {
+                            id.set('atsushieno')
+                            name.set('Atsushi Eno')
+                            email.set('atsushieno@gmail.com')
+                        }
+                    }
+                }
+            }
+
             maven(MavenPublication) {
                 groupId = group
                 artifactId = "alsakt"
@@ -48,4 +72,9 @@ afterEvaluate {
             }
         }
     }
+
+    apply from: "${rootDir}/publish-module.gradle"
+
+    // keep it as is. It is replaced by CI release builds
+    signing {}
 }

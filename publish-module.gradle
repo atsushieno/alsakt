@@ -1,0 +1,24 @@
+
+tasks.register('javadocJar', Jar) {
+    archiveClassifier.set('javadoc')
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifact(javadocJar)
+        }
+    }
+
+    repositories {
+        maven {
+            name = "OSSRH"
+            url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+            credentials {
+                username = ossrhUsername
+                password = ossrhPassword
+            }
+        }
+    }
+}
+
