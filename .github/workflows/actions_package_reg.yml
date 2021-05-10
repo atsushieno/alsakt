@@ -33,7 +33,9 @@ jobs:
         GPG_KEY_CONTENTS: ${{ secrets.GPG_KEY_CONTENTS }}
         SIGNING_SECRET_KEY_RING_FILE: ${{ secrets.SIGNING_SECRET_KEY_RING_FILE }}
     - name: rewrite build.gradle to require signing
-      run: sed -e "s/signing {}/signing { sign publishing.publications }/"
+      run: |
+        sed -i "s/signing {}/signing { sign publishing.publications }/" alsakt/build.gradle
+        sed -i "s/signing {}/signing { sign publishing.publications }/" alsakt-javacpp/build.gradle
     - name: publish
       run: ./gradlew --warning-mode all publish --max-workers 1 closeAndReleaseSonatypeStagingRepository
       env:

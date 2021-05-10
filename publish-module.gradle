@@ -1,12 +1,18 @@
 
 tasks.register('javadocJar', Jar) {
     archiveClassifier.set('javadoc')
+    from javadoc.destinationDir
+}
+tasks.register('sourceJar', Jar) {
+    archiveClassifier.set('source')
+    from sourceSets.main.allSource
 }
 
 publishing {
     publications {
         maven(MavenPublication) {
             artifact(javadocJar)
+            artifact(sourceJar)
         }
     }
 
