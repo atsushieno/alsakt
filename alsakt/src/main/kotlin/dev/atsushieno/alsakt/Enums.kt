@@ -41,6 +41,8 @@ object AlsaPortCapabilities {
     /**
      * < allow read/write duplex
      */
+    const val Duplex = 1 shl 4
+    @Deprecated("Use Duplex", ReplaceWith("Duplex"))
     const val Duple = 1 shl 4
 
     /**
@@ -57,6 +59,23 @@ object AlsaPortCapabilities {
      * < routing not allowed
      */
     const val NoExport = 1 shl 7
+
+    /**
+     * < inactive port
+     */
+    const val Inactive = 1 shl 8
+
+    /**
+     * < UMP Endpoint
+     */
+    const val UmpEndpoint = 1 shl 9
+}
+
+object AlsaPortDirection {
+    const val Unknown = 0
+    const val Input = 1
+    const val Output = 2
+    const val Bidirection = 3
 }
 
 object AlsaPortType {
@@ -93,6 +112,11 @@ object AlsaPortType {
      * This port is compatible with the General MIDI 2 specification.
      */
     const val MidiGM2 = 1 shl 6
+
+    /**
+     * This port is a UMP port.
+     */
+    const val Ump = 1 shl 7
 
     /**
      * This port understands SND_SEQ_EVENT_SAMPLE_xxx messages
@@ -149,6 +173,26 @@ object AlsaSubscriptionQueryType {
     const val Read = 0
     const val Write = 1
 }
+
+object AlsaQueueTimerType {
+    const val Alsa = 0
+    const val MidiClock = 1
+    const val MidiTick = 2
+}
+
+object AlsaRemoveFlags {
+    const val Input = 1 shl 0
+    const val Output = 1 shl 1
+    const val Destination = 1 shl 2
+    const val DestinationChannel = 1 shl 3
+    const val TimeBefore = 1 shl 4
+    const val TimeAfter = 1 shl 5
+    const val TimeTick = 1 shl 6
+    const val EventType = 1 shl 7
+    const val IgnoreOff = 1 shl 8
+    const val TagMatch = 1 shl 9
+}
+
 object AlsaSequencerEventType {
     const val System = 0
     const val Result = 1
