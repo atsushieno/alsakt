@@ -116,4 +116,12 @@ class AlsaPortInfo : AutoCloseable {
     val manufacturer = "" // FIXME: implement
 
     val version = "" // FIXME: implement
+
+    var direction: Int
+        get() = Alsa.snd_seq_port_info_get_direction(handle)
+        set(value) = Alsa.snd_seq_port_info_set_direction(handle, value)
+
+    var umpGroup: Int
+        get() = Alsa.snd_seq_port_info_get_ump_group(handle)
+        set(value) = Alsa.snd_seq_port_info_set_ump_group(handle, value)
 }

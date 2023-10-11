@@ -73,9 +73,19 @@ class AlsaClientInfo : AutoCloseable {
     val eventLostCount : Int
         get() = Alsa.snd_seq_client_info_get_event_lost (handle)
 
+    val midiVersion : Int
+        get() = Alsa.snd_seq_client_info_get_midi_version(handle)
+
+    val umpConversion : Int
+        get() = Alsa.snd_seq_client_info_get_ump_conversion(handle)
+
+    val isUmpGrouplessEnabled : Boolean
+        get() = Alsa.snd_seq_client_info_get_ump_groupless_enabled(handle) != 0
+
     fun clearEventFilter () = Alsa.snd_seq_client_info_event_filter_clear (handle)
     fun addEventFilter ( eventType: Int) = Alsa.snd_seq_client_info_event_filter_add (handle, eventType)
     fun deleteEventFilter ( eventType: Int) = Alsa.snd_seq_client_info_event_filter_del (handle, eventType)
     fun isEventFiltered ( eventType: Int) = Alsa.snd_seq_client_info_event_filter_check (handle, eventType) > 0
+    fun isUmpGroupEnabled(group: Int) = Alsa.snd_seq_client_info_get_ump_group_enabled(handle, group) != 0
 }
 
