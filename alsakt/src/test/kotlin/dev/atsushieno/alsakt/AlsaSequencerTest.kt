@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import java.io.File
 
-val isAlsaAvailable = File("/dev/snd/seq").exists()
+val isAlsaAvailable = with(File("/dev/snd/seq")) { this.exists() && this.canRead() }
 
 class AlsaSequencerTest {
     @Test
