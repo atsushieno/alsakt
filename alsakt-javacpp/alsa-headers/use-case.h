@@ -117,7 +117,10 @@ extern "C" {
  *
  * If multiple devices with the same name exists, the number suffixes should
  * be added to these names like HDMI1,HDMI2,HDMI3 etc. No number gaps are
- * allowed. The names with numbers must be continuous.
+ * allowed. The names with numbers must be continuous. It is allowed to put
+ * a whitespace between name and index (like 'Line 1') for the better
+ * readability. The device names 'Line 1' and 'Line1' are equal for
+ * this purpose.
  *
  * If EnableSequence/DisableSequence controls independent paths in the hardware
  * it is also recommended to split playback and capture UCM devices and use
@@ -137,6 +140,7 @@ extern "C" {
 #define SND_USE_CASE_DEV_EARPIECE	"Earpiece"	/**< Earpiece Device */
 #define SND_USE_CASE_DEV_SPDIF		"SPDIF"		/**< SPDIF Device */
 #define SND_USE_CASE_DEV_HDMI		"HDMI"		/**< HDMI Device */
+#define SND_USE_CASE_DEV_USB		"USB"		/**< USB Device (multifunctional) */
 /* add new devices to end of list */
 
 
@@ -145,6 +149,13 @@ extern "C" {
  *
  * The use case modifier allows runtime configuration changes to deal with
  * asynchronous events.
+ *
+ * If multiple modifiers with the same name exists, the number suffixes should
+ * be added to these names like 'Echo Reference 1','Echo Reference 2' etc.
+ * No number gaps are allowed. The names with numbers must be continuous.
+ * It is allowed to put a whitespace between name and index for the better
+ * readability. The modifier names 'Something 1' and 'Something1' are equal
+ * for this purpose.
  *
  * e.g. to record a voice call :-
  *  1. Set verb to SND_USE_CASE_VERB_VOICECALL (for voice call)
@@ -246,6 +257,8 @@ int snd_use_case_get_list(snd_use_case_mgr_t *uc_mgr,
  *   - NULL 		- return current card
  *   - _verb		- return current verb
  *   - _file		- return configuration file loaded for current card
+ *   - _alibcfg		- return private alsa-lib's configuration for current card
+ *   - _alibpref	- return private alsa-lib's configuration device prefix for current card
  *
  *   - [=]{NAME}[/[{modifier}|{/device}][/{verb}]]
  *                      - value identifier {NAME}
@@ -272,6 +285,11 @@ int snd_use_case_get_list(snd_use_case_mgr_t *uc_mgr,
  *                              "=Variable/Modifier/Verb"
  *
  * Recommended names for values:
+ *   - Linked
+ *      - value "True" or "1" (case insensitive)
+ *      - this is a linked UCM card
+ *      - don't use this UCM card, because the other UCM card refers devices
+ *      - valid only in the ValueDefaults section (query '=Linked')
  *   - TQ
  *      - Tone Quality
  *   - Priority
@@ -402,7 +420,10 @@ int snd_use_case_geti(snd_use_case_mgr_t *uc_mgr,
  * \return Zero if success, otherwise a negative error code
  *
  * Known identifiers:
+ *   - _fboot			- execute the fixed boot sequence (value = NULL)
  *   - _boot			- execute the boot sequence (value = NULL)
+ *				   - only when driver controls identifiers are changed
+ *				     (otherwise the old control values are restored)
  *   - _defaults		- execute the 'defaults' sequence (value = NULL)
  *   - _verb			- set current verb = value
  *   - _enadev			- enable given device = value

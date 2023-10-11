@@ -50,19 +50,163 @@ typedef struct snd_aes_iec958 {
 	unsigned char dig_subframe[4];	/**< AES/IEC958 subframe bits */
 } snd_aes_iec958_t;
 
-/** CTL card info container */
+/** \brief CTL card info container.
+ *
+ * This type contains meta information about a sound card, such as the index,
+ * name, longname, etc.
+ *
+ * \par Memory management
+ *
+ * Before using a snd_ctl_card_info_t object, it must be allocated using
+ * snd_ctl_card_info_alloca() or snd_ctl_card_info_malloc(). When using the
+ * latter, it must be freed again using snd_ctl_card_info_free().
+ *
+ * A card info object can be zeroed out using snd_ctl_card_info_clear().
+ *
+ * A card info object can be copied to another one using
+ * snd_ctl_card_info_copy().
+ *
+ * \par Obtaining the Information
+ *
+ * To obtain the card information, it must first be opened using
+ * snd_ctl_open(), and a snd_ctl_card_info_t container must be
+ * allocated. Then, the information can be read using
+ * snd_ctl_card_info_get_card().
+ *
+ * Thereafter, the card properties can be read using the
+ * snd_ctl_card_info_get_*() functions.
+ */
 typedef struct _snd_ctl_card_info snd_ctl_card_info_t;
 
 /** CTL element identifier container */
 typedef struct _snd_ctl_elem_id snd_ctl_elem_id_t;
 
-/** CTL element identifier list container */
+/** CTL element list container
+ *
+ * This is a list of CTL elements. The list contains management
+ * information (e.g. how many elements the sound card has) as well as
+ * the element identifiers. All functions which operate on the list
+ * are named snd_ctl_elem_list_*().
+ *
+ * \par Memory management
+ *
+ * There are two memory areas to deal with: The list container itself
+ * and the memory for the element identifiers.
+ *
+ * To manage the area for the list container, the following functions
+ * are used:
+ *
+ * - snd_ctl_elem_list_malloc() / snd_ctl_elem_list_free() to allocate
+ *   and free memory on the heap, or
+ * - snd_ctl_elem_list_alloca() to allocate the memory on the
+ *   stack. This memory is auto-released when the stack is unwound.
+ *
+ * To manage the space for the element identifiers, the
+ * snd_ctl_elem_list_alloc_space() and snd_ctl_elem_list_free_space()
+ * are used. Allocating the right amount of space can be achieved by
+ * first obtaining the number of elements and then calling
+ * snd_ctl_elem_list_alloc_space():
+ *
+ * \code
+ *   snd_ctl_elem_list_t* list;
+ *   int count;
+ *
+ *   // Initialise list
+ *   snd_ctl_elem_list_malloc(&list);
+ *
+ *   // Get number of elements
+ *   snd_ctl_elem_list(ctl, list);
+ *   count = snd_ctl_elem_list_get_count(list);
+ *
+ *   // Allocate space for identifiers
+ *   snd_ctl_elem_list_alloc_space(list, count);
+ *
+ *   // Get identifiers
+ *   snd_ctl_elem_list(ctl, list); // yes, this is same as above :)
+ *
+ *   // Do something useful with the list...
+ *
+ *   // Cleanup
+ *   snd_ctl_elem_list_free_space(list);
+ *   snd_ctl_elem_list_free(list);
+ * \endcode
+ *
+ *
+ * \par The Elements
+ *
+ * The elements in the list are accessed using an index. This index is
+ * the location in the list; Don't confuse it with the 'index' of the
+ * element identifier. For example:
+ *
+ * \code
+ *     snd_ctl_elem_list_t list;
+ *     unsigned int element_index;
+ *
+ *     // Allocate space, fill list ...
+ *
+ *     element_index = snd_ctl_elem_list_get_index(&list, 2);
+ * \endcode
+ *
+ * This will access the 3rd element in the list (index=2) and get the
+ * elements index from the driver (which might be 13, for example).
+ */
 typedef struct _snd_ctl_elem_list snd_ctl_elem_list_t;
 
 /** CTL element info container */
 typedef struct _snd_ctl_elem_info snd_ctl_elem_info_t;
 
-/** CTL element value container */
+/** CTL element value container.
+ *
+ * Contains the value(s) (i.e. members) of a single element. All
+ * values of a given element are of the same type.
+ *
+ * \par Memory management
+ *
+ * To access a value, a snd_ctl_elem_value_t must be allocated using
+ * snd_ctl_elem_value_alloca() or snd_ctl_elem_value_malloc(). When
+ * using the latter, it must be freed again using
+ * snd_ctl_elem_value_free().
+ *
+ * A value object can be zeroed out using snd_ctl_elem_value_clear().
+ *
+ * A value object can be copied to another one using
+ * snd_ctl_elem_value_copy().
+ *
+ * \par Identifier
+ *
+ * Then, the ID must be filled. It is sufficient to fill only the
+ * numid, if known. Otherwise, interface type, device, subdevice,
+ * name, index must all be given.  The following functions can be used
+ * to fill the ID:
+ *
+ * - snd_ctl_elem_value_set_id(): Set the ID. Requires an
+ *   snd_ctl_elem_id_t object.
+ * - snd_ctl_elem_value_set_numid(): Set the numid.
+ * - Or use all of the following:
+ *
+ *   - snd_ctl_elem_value_set_interface()
+ *   - snd_ctl_elem_value_set_device()
+ *   - snd_ctl_elem_value_set_subdevice()
+ *   - snd_ctl_elem_value_set_name()
+ *   - snd_ctl_elem_value_set_index()
+ *
+ * When communicating with the driver (snd_ctl_elem_read(),
+ * snd_ctl_elem_write()), and the numid was given, the interface,
+ * device, ... are filled (even if you set the before). When the numid
+ * is unset (i.e. it is 0), it is filled.
+ *
+ * \par Communicating with the driver
+ *
+ * After the value container was created and filled with the ID of the
+ * desired element, the value(s) can be fetched from the driver (and
+ * thus from the hardware) or written to the driver.
+ *
+ * To fetch a value, use snd_ctl_elem_read(). Thereafter, use the
+ * snd_ctl_elem_value_get_*() functions to obtain the actual value.
+ *
+ * To write a new value, first use a snd_ctl_elem_value_set_*() to set
+ * it, then call snd_ctl_elem_write() to write it to the driver.
+ */
 typedef struct _snd_ctl_elem_value snd_ctl_elem_value_t;
 
 /** CTL event container */
@@ -198,7 +342,9 @@ typedef enum _snd_ctl_type {
 	/** INET client CTL (not yet implemented) */
 	SND_CTL_TYPE_INET,
 	/** External control plugin */
-	SND_CTL_TYPE_EXT
+	SND_CTL_TYPE_EXT,
+	/** Control functionality remapping */
+	SND_CTL_TYPE_REMAP,
 } snd_ctl_type_t;
 
 /** Non blocking mode (flag for open mode) \hideinitializer */
@@ -310,6 +456,8 @@ int snd_ctl_elem_id_malloc(snd_ctl_elem_id_t **ptr);
 void snd_ctl_elem_id_free(snd_ctl_elem_id_t *obj);
 void snd_ctl_elem_id_clear(snd_ctl_elem_id_t *obj);
 void snd_ctl_elem_id_copy(snd_ctl_elem_id_t *dst, const snd_ctl_elem_id_t *src);
+int snd_ctl_elem_id_compare_numid(const snd_ctl_elem_id_t *id1, const snd_ctl_elem_id_t *id2);
+int snd_ctl_elem_id_compare_set(const snd_ctl_elem_id_t *id1, const snd_ctl_elem_id_t *id2);
 unsigned int snd_ctl_elem_id_get_numid(const snd_ctl_elem_id_t *obj);
 snd_ctl_elem_iface_t snd_ctl_elem_id_get_interface(const snd_ctl_elem_id_t *obj);
 unsigned int snd_ctl_elem_id_get_device(const snd_ctl_elem_id_t *obj);
@@ -324,11 +472,20 @@ void snd_ctl_elem_id_set_name(snd_ctl_elem_id_t *obj, const char *val);
 void snd_ctl_elem_id_set_index(snd_ctl_elem_id_t *obj, unsigned int val);
 
 size_t snd_ctl_card_info_sizeof(void);
+
 /** \hideinitializer
- * \brief allocate an invalid #snd_ctl_card_info_t using standard alloca
- * \param ptr returned pointer
+ * \brief Allocate an invalid #snd_ctl_card_info_t on the stack.
+ *
+ * Allocate space for a card info object on the stack. The allocated
+ * memory need not be freed, because it is on the stack.
+ *
+ * See snd_ctl_card_info_t for details.
+ *
+ * \param ptr Pointer to a snd_ctl_elem_value_t pointer. The address
+ *            of the allocated space will returned here.
  */
 #define snd_ctl_card_info_alloca(ptr) __snd_alloca(ptr, snd_ctl_card_info)
+
 int snd_ctl_card_info_malloc(snd_ctl_card_info_t **ptr);
 void snd_ctl_card_info_free(snd_ctl_card_info_t *obj);
 void snd_ctl_card_info_clear(snd_ctl_card_info_t *obj);
@@ -354,11 +511,18 @@ void snd_ctl_event_copy(snd_ctl_event_t *dst, const snd_ctl_event_t *src);
 snd_ctl_event_type_t snd_ctl_event_get_type(const snd_ctl_event_t *obj);
 
 size_t snd_ctl_elem_list_sizeof(void);
+
 /** \hideinitializer
- * \brief allocate an invalid #snd_ctl_elem_list_t using standard alloca
- * \param ptr returned pointer
+ *
+ * \brief Allocate a #snd_ctl_elem_list_t using standard alloca.
+ *
+ * The memory is allocated on the stack and will automatically be
+ * released when the stack unwinds (i.e. no free() is needed).
+ *
+ * \param ptr Pointer to allocated memory.
  */
 #define snd_ctl_elem_list_alloca(ptr) __snd_alloca(ptr, snd_ctl_elem_list)
+
 int snd_ctl_elem_list_malloc(snd_ctl_elem_list_t **ptr);
 void snd_ctl_elem_list_free(snd_ctl_elem_list_t *obj);
 void snd_ctl_elem_list_clear(snd_ctl_elem_list_t *obj);
@@ -424,6 +588,9 @@ void snd_ctl_elem_info_set_device(snd_ctl_elem_info_t *obj, unsigned int val);
 void snd_ctl_elem_info_set_subdevice(snd_ctl_elem_info_t *obj, unsigned int val);
 void snd_ctl_elem_info_set_name(snd_ctl_elem_info_t *obj, const char *val);
 void snd_ctl_elem_info_set_index(snd_ctl_elem_info_t *obj, unsigned int val);
+void snd_ctl_elem_info_set_read_write(snd_ctl_elem_info_t *obj, int rval, int wval);
+void snd_ctl_elem_info_set_tlv_read_write(snd_ctl_elem_info_t *obj, int rval, int wval);
+void snd_ctl_elem_info_set_inactive(snd_ctl_elem_info_t *obj, int val);
 
 int snd_ctl_add_integer_elem_set(snd_ctl_t *ctl, snd_ctl_elem_info_t *info,
 				 unsigned int element_count,
@@ -454,11 +621,20 @@ int snd_ctl_elem_add_iec958(snd_ctl_t *ctl, const snd_ctl_elem_id_t *id);
 int snd_ctl_elem_remove(snd_ctl_t *ctl, snd_ctl_elem_id_t *id);
 
 size_t snd_ctl_elem_value_sizeof(void);
+
 /** \hideinitializer
- * \brief allocate an invalid #snd_ctl_elem_value_t using standard alloca
- * \param ptr returned pointer
+ * \brief Allocate an invalid #snd_ctl_elem_value_t on the stack.
+ *
+ * Allocate space for a value object on the stack. The allocated
+ * memory need not be freed, because it is on the stack.
+ *
+ * See snd_ctl_elem_value_t for details.
+ *
+ * \param ptr Pointer to a snd_ctl_elem_value_t pointer. The address
+ *            of the allocated space will returned here.
  */
 #define snd_ctl_elem_value_alloca(ptr) __snd_alloca(ptr, snd_ctl_elem_value)
+
 int snd_ctl_elem_value_malloc(snd_ctl_elem_value_t **ptr);
 void snd_ctl_elem_value_free(snd_ctl_elem_value_t *obj);
 void snd_ctl_elem_value_clear(snd_ctl_elem_value_t *obj);

@@ -94,6 +94,8 @@ public class Alsa implements InfoMapper {
             // It is somewhat tricky; these macros define libdl-related ALSA functions, which are
             // by default bound as declared functions in Java but the actual target functions don't exist
             // (somehow) and causes unresolved symbols... (contd.)
+            .put(new Info("SND_LIB_VER").skip())
+            .put(new Info("SND_LIB_VERSION").skip())
             .put(new Info("SND_CONFIG_DLSYM_VERSION_EVALUATE").skip())
             .put(new Info("SND_CONFIG_DLSYM_VERSION_HOOK").skip())
             .put(new Info("SND_TIMER_DLSYM_VERSION").skip())
