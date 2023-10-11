@@ -1,6 +1,6 @@
 plugins {
     id 'java'
-    id 'org.jetbrains.kotlin.jvm' version '1.5.10'
+    id 'org.jetbrains.kotlin.jvm' version '1.8.20'
     id 'org.bytedeco.gradle-javacpp-build' version '1.5.5'
     id 'maven-publish'
     id 'signing'
@@ -11,7 +11,7 @@ ext {
 }
 
 group 'dev.atsushieno'
-version '0.1.5'
+version '0.2.0'
 
 repositories {
     mavenCentral()
@@ -31,10 +31,11 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
 }
 
-tasks.withType(org.bytedeco.gradle.javacpp.BuildTask) {
+tasks.withType(org.bytedeco.gradle.javacpp.BuildTask).configureEach {
     // set here default values for all build tasks below, typically just includePath and linkPath,
     // but also properties to set the path to the NDK and its compiler in the case of Android
-    includePath = [project.projectDir.toString() + '/alsa-headers', project.projectDir.toString() + '/dummy_headers'] // It is likely dependent of your Linux desktop distro.
+    includePath = [project.projectDir.toString() + '/alsa-headers', project.projectDir.toString() + '/dummy_headers']
+    // It is likely dependent of your Linux desktop distro.
     deleteJniFiles false
 }
 
