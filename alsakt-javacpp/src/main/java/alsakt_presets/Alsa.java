@@ -18,52 +18,61 @@ import org.bytedeco.javacpp.tools.*;
 //  which is no-go. It seems the resulting library still builds, so we leave them as is. Also...(contd.)
 "dummy_poll.h",
 
-//"asoundlib.h",
-"asoundef.h",
-"version.h",
-"global.h",
-"input.h",
-"output.h",
-///"error.h",
-"conf.h",
-//"pcm.h",
-//"rawmidi.h",
-"timer.h",
-//"hwdep.h",
-//"control.h",
-//"mixer.h",
-"seq_event.h",
-"seq.h",
-"seqmid.h",
-"seq_midi_event.h",
-/*
-"mixer_abst.h",
-"pcm_external.h",
-"pcm_plugin.h",
-//"pcm_old.h",
-"control_external.h",
-"pcm_rate.h",
-"sound/sb16_csp.h",
-"sound/type_compat.h",
-"sound/uapi/sb16_csp.h",
-"sound/uapi/asound_fm.h",
-"sound/uapi/asoc.h",
-"sound/uapi/emu10k1.h",
-"sound/uapi/hdspm.h",
-"sound/uapi/hdsp.h",
-"sound/uapi/sscape_ioctl.h",
-"sound/uapi/tlv.h",
-"sound/asound_fm.h",
-"sound/asoc.h",
-"sound/emu10k1.h",
-"sound/hdspm.h",
-"sound/hdsp.h",
-"sound/sscape_ioctl.h",
-"sound/tlv.h",
-"pcm_extplug.h",
-"use-case.h",
-"pcm_ioplug.h",
-*/
+                    "alsa/asoundef.h",
+                    //"alsa/asoundlib.h",
+
+                    // These files are explicitly included from asoundlib.h:
+
+                    "alsa/version.h",
+                    "alsa/global.h",
+                    "alsa/input.h",
+                    "alsa/output.h",
+                    // It mostly defines functions with varargs which javacpp does not work well with.
+                    //"alsa/error.h",
+                    "alsa/conf.h",
+                    "alsa/pcm.h", // _snd_pcm_format could not be generated, see comment below
+                    "alsa/rawmidi.h",
+                    "alsa/ump.h",
+                    "alsa/timer.h",
+                    "alsa/hwdep.h",
+                    "alsa/control.h",
+                    "alsa/mixer.h",
+                    "alsa/seq_event.h",
+                    "alsa/seq.h",
+                    "alsa/seqmid.h",
+                    "alsa/seq_midi_event.h",
+
+                    // These are not:
+
+                    //"alsa/control_external.h",
+                    //"alsa/control_plugin.h",
+                    //"alsa/mixer_abst.h",
+                    //"alsa/pcm_external.h",
+                    //"alsa/pcm_extplug.h",
+                    //"alsa/pcm_ioplug.h",
+                    //"alsa/pcm_old.h",
+                    //"alsa/pcm_plugin.h",
+                    //"alsa/pcm_rate.h",
+                    //"alsa/sound/asoc.h",
+                    //"alsa/sound/asound_fm.h",
+                    //"alsa/sound/emu10k1.h",
+                    //"alsa/sound/hdsp.h",
+                    //"alsa/sound/hdspm.h",
+                    //"alsa/sound/sb16_csp.h",
+                    //"alsa/sound/sscape_ioctl.h",
+                    //"alsa/sound/tlv.h",
+                    //"alsa/sound/type_compat.h",
+                    //"alsa/sound/uapi/asoc.h",
+                    //"alsa/sound/uapi/asound_fm.h",
+                    //"alsa/sound/uapi/emu10k1.h",
+                    //"alsa/sound/uapi/hdsp.h",
+                    //"alsa/sound/uapi/hdspm.h",
+                    //"alsa/sound/uapi/sb16_csp.h",
+                    //"alsa/sound/uapi/sscape_ioctl.h",
+                    //"alsa/sound/uapi/tlv.h",
+                    //"alsa/topology.h",
+                    //"alsa/ump_msg.h",
+                    //"alsa/use-case.h",
 },
             link = "asound",
             preload = "asound"
@@ -101,6 +110,10 @@ public class Alsa implements InfoMapper {
             .put(new Info("SND_TIMER_DLSYM_VERSION").skip())
             .put(new Info("SND_TIMER_QUERY_DLSYM_VERSION").skip())
             .put(new Info("SND_SEQ_DLSYM_VERSION").skip())
+            .put(new Info("SND_RAWMIDI_DLSYM_VERSION").skip())
+            .put(new Info("SND_HWDEP_DLSYM_VERSION").skip())
+            .put(new Info("SND_CONTROL_DLSYM_VERSION").skip())
+            .put(new Info("SND_PCM_DLSYM_VERSION").skip())
             // ...however, fixing macros does not seem enough. There are actually mapped symbols that are
             // used and then expected to exist within referring libraries. `snd_dlsym_start` seems to be
             // one of such a function that triggers this issue.
@@ -108,6 +121,11 @@ public class Alsa implements InfoMapper {
             // if those macros are declared (not skipped), then this function and relevant binding glue
             // is generated, resulting in missing `_dlsym_config_evaluate_001` symbol and then causes
             // UnsatisfiedLinkError at run-time.
+
+            // The enum type contains members that depend on the platform endianness which is statically resolved in C/C++,
+            // but not nicely with JavaCPP, and I'm not sure how I can sort them out... so far, skip generating the type.
+            .put(new Info("_snd_pcm_format").skip())
+
             //
             // It looks as if we were missing `libjniAlsa.so` in the loader target paths when it is
             // being loaded by javacpp Loader. How confusing! You can examine if the shared library loads
@@ -119,7 +137,7 @@ public class Alsa implements InfoMapper {
 
 //            .put(new Info("__BYTE_ORDER == __BIG_ENDIAN").define(false))
 //            .put(new Info("__inline__").skip())
-//            .put(new Info("pid_t").cppTypes("int"))
+            .put(new Info("pid_t").cppTypes("int"))
 //            .put(new Info("snd_mixer_selem_channel_id_t").pointerTypes("Pointer"))
 //            .put(new Info("mixer_abst.h").linePatterns(".*snd_mixer_class_t .*class.*").skip())
             ;
