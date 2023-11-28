@@ -40,13 +40,13 @@ jobs:
     # ONLY FOR NON-RELEASES
     - name: build
       if: ${{ !startsWith(github.ref, 'refs/tags/') }}
-      run:
+      run: |
         ./build-native.sh
         ./gradlew --warning-mode all build
     # ONLY FOR NEW RELEASE TAGS
     - name: publish
       if: startsWith(github.ref, 'refs/tags/')
-      run:
+      run: |
         ./build-native.sh
         ./gradlew --warning-mode all publish
       env:
