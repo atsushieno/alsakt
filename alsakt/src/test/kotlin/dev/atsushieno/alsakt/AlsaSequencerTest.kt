@@ -52,6 +52,7 @@ class AlsaSequencerTest {
                 println(cli.client)
                 println(cli.portCount)
                 println(cli.broadcastFilter)
+                println(cli.midiVersion)
             }
         }
     }

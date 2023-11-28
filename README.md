@@ -8,14 +8,21 @@ alsakt is created mostly for use in [ktmidi](https://github.com/atsushieno/ktmid
 
 ## Building
 
-It is a Gradle Kotlin/JVM project and `./gradlew build` would work, but
-depending on the distribution you may have to edit [build.gradle](alsakt-javacpp/build.gradle#L33) and/or [Alsa.java](alsakt-javacpp/src/main/java/alsakt_presets/Alsa.java) configuration.
+Since alsakt 0.3.0, it bundles `libasound.so` on x86_64 Linux (maybe doable for other architectures, but needs native build setup). Before trying to build the Kotlin/JVM library, we have to build `libasound.so` first:
+
+```
+./build-native.sh
+```
+
+Then the resulting shared library will be packaged within the .jar by JavaCPP builder.
+
+It is a Gradle Kotlin/JVM project and `./gradlew build` takes care of the Kotlin/JVM part.
 
 ## Licenses
 
 alsakt is released under the MIT license.
 
-ALSA headers in `alsakt-javacpp/alsa-headers` are copied from [ALSA](https://github.com/alsa-project/alsa-lib) headers distributed as part of Ubuntu 20.04, which is released under the LGPL v2.1 license.
+The ALSA headers and `libasound.so` that are packaged in the resulting jar is built from [alsa-lib](https://github.com/alsa-project/alsa-lib) submodule, which is released under the LGPL v2.1 license.
 
 [JavaCPP](https://github.com/bytedeco/javacpp/) is distributed under Apache V2 license.
 

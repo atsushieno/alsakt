@@ -11,7 +11,7 @@ ext {
 }
 
 group 'dev.atsushieno'
-version '0.2.1'
+version '0.3.0'
 
 repositories {
     mavenCentral()
@@ -34,7 +34,10 @@ dependencies {
 tasks.withType(org.bytedeco.gradle.javacpp.BuildTask).configureEach {
     // set here default values for all build tasks below, typically just includePath and linkPath,
     // but also properties to set the path to the NDK and its compiler in the case of Android
-    includePath = [project.projectDir.toString() + '/alsa-headers', project.projectDir.toString() + '/dummy_headers']
+    includePath = [project.projectDir.toString() + '/../alsa-dist/include', project.projectDir.toString() + '/dummy_headers']
+    linkPath = [project.projectDir.toString() + '/../alsa-dist/lib-no-symlink']
+    copyLibs true
+
     // It is likely dependent of your Linux desktop distro.
     deleteJniFiles false
 }

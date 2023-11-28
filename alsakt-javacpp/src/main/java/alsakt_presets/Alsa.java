@@ -14,9 +14,9 @@ import org.bytedeco.javacpp.tools.*;
             value = {"linux-x86", "linux-x86_64"},
             // This is so far a limited set of header files which is enough for ktmidi.
             include = {
-// We'd like to remove this line, but adding them results in missing related functions
-//  which is no-go. It seems the resulting library still builds, so we leave them as is. Also...(contd.)
-"dummy_poll.h",
+                    // We'd like to remove this line, but adding them results in missing related functions
+                    //  which is no-go. It seems the resulting library still builds, so we leave them as is. Also...(contd.)
+                    "dummy_poll.h",
 
                     "alsa/asoundef.h",
                     //"alsa/asoundlib.h",
@@ -73,9 +73,8 @@ import org.bytedeco.javacpp.tools.*;
                     //"alsa/topology.h",
                     //"alsa/ump_msg.h",
                     //"alsa/use-case.h",
-},
-            link = "asound",
-            preload = "asound"
+            },
+            link = {"asound"}
         )
 
     }

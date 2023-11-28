@@ -73,9 +73,16 @@ class AlsaClientInfo : AutoCloseable {
     val eventLostCount : Int
         get() = Alsa.snd_seq_client_info_get_event_lost (handle)
 
+    private val midiVersionAvailable =
+        AlsaVersion.major >=1 &&
+        AlsaVersion.minor >=2 &&
+        AlsaVersion.revision >= 10
     var midiVersion : Int
-        get() = Alsa.snd_seq_client_info_get_midi_version(handle)
-        set(value) = Alsa.snd_seq_client_info_set_midi_version(handle, value)
+        get() = if (midiVersionAvailable) Alsa.snd_seq_client_info_get_midi_version(handle) else 0
+        set(value) {
+            if (midiVersionAvailable)
+                Alsa.snd_seq_client_info_set_midi_version(handle, value)
+        }
 
     val umpConversion : Int
         get() = Alsa.snd_seq_client_info_get_ump_conversion(handle)
