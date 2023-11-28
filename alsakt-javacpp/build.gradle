@@ -10,9 +10,6 @@ ext {
     javacppPlatform = 'linux-x86_64' // ugh, can we cross-compile for ,linux-x86,linux-arm64,linux-arm32 as well?
 }
 
-group 'dev.atsushieno'
-version '0.3.0'
-
 repositories {
     mavenCentral()
 }

@@ -3,3 +3,8 @@ plugins {
 }
 
 apply from: "${rootDir}/publish-root.gradle"
+
+allprojects {
+    group = 'dev.atsushieno'
+    version = '0.3.0'
+}
