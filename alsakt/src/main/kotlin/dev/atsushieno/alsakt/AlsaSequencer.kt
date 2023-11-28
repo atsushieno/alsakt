@@ -76,7 +76,24 @@ class AlsaSequencer(
         return ret >= 0
     }
 
-    fun getClient(client: Int): AlsaClientInfo {
+    var clientInfo: AlsaClientInfo
+        get() {
+            val info = AlsaClientInfo()
+            val ret = Alsa.snd_seq_get_client_info(seq, info.handle)
+            if (ret != 0)
+                throw AlsaException(ret)
+            return info
+        }
+        set(value) {
+            val ret = Alsa.snd_seq_set_client_info(seq, value.handle)
+            if (ret != 0)
+                throw AlsaException(ret)
+        }
+
+    @Deprecated("Use getAnyClient()", ReplaceWith("getAnyClient(client)"))
+    fun getClient(client: Int): AlsaClientInfo = getAnyClient(client)
+
+    fun getAnyClient(client: Int): AlsaClientInfo {
         val info = AlsaClientInfo()
         val ret = Alsa.snd_seq_get_any_client_info(seq, client, info.handle)
         if (ret != 0)

@@ -46,7 +46,7 @@ class AlsaSequencerTest {
         if (!isAlsaAvailable) return
 
         AlsaSequencer (AlsaIOType.Input, AlsaIOMode.NonBlocking).use { seq ->
-            seq.getClient (AlsaSequencer.ClientSystem).use { cli ->
+            seq.getAnyClient (AlsaSequencer.ClientSystem).use { cli ->
                 println(cli.name)
                 println(cli.card)
                 println(cli.client)
@@ -77,7 +77,7 @@ class AlsaSequencerTest {
             assertEquals ("default", seq.name, "#1")
             seq.setClientName ("overwritten sequencer name")
             assertEquals("default", seq.name, "#2")
-            assertEquals ("overwritten sequencer name", seq.getClient (seq.currentClientId).name, "#3")
+            assertEquals ("overwritten sequencer name", seq.clientInfo.name, "#3")
         }
     }
 
