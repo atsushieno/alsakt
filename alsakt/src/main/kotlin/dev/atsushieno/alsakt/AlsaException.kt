@@ -1,8 +1,10 @@
 package dev.atsushieno.alsakt
 
+import dev.atsushieno.alsakt.javacpp.global.Alsa
+
 class AlsaException : Exception {
     constructor() : super("ALSA error")
-    constructor(errorCode: Int) : super("ALSA error (error code $errorCode)")
+    constructor(errorCode: Int) : super("ALSA error: ${Alsa.snd_strerror(errorCode).string} (error code $errorCode)")
     constructor(msg: String?) : super(msg)
 
     constructor(msg: String?, innerException: Exception?) : super(msg, innerException)

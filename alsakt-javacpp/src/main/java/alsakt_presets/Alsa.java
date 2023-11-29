@@ -27,8 +27,7 @@ import org.bytedeco.javacpp.tools.*;
                     "alsa/global.h",
                     "alsa/input.h",
                     "alsa/output.h",
-                    // It mostly defines functions with varargs which javacpp does not work well with.
-                    //"alsa/error.h",
+                    "alsa/error.h",
                     "alsa/conf.h",
                     "alsa/pcm.h", // _snd_pcm_format could not be generated, see comment below
                     "alsa/rawmidi.h",
@@ -98,6 +97,11 @@ public class Alsa implements InfoMapper {
             .put(new Info("snd_config_iterator_next").skip()) // used only in a macro
             .put(new Info("snd_config_iterator_end").skip()) // used only in a macro
             .put(new Info("snd_config_iterator_entry").skip()) // used only in a macro
+
+            // in error.h, fails to compile (error: invalid conversion from ‘snd_lib_error_handler_t’ ...)
+            .put(new Info("snd_lib_error").skip())
+            // in error.h, fails to compile (error: invalid conversion from ‘void (*)(const char*, int, const char*, int, const char*)’ to ‘snd_lib_error_handler_t’ ...)
+            .put(new Info("snd_lib_error_set_handler").skip())
 
             // It is somewhat tricky; these macros define libdl-related ALSA functions, which are
             // by default bound as declared functions in Java but the actual target functions don't exist
