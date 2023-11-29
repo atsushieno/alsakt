@@ -101,12 +101,29 @@ class AlsaSequencer(
         return info
     }
 
-    fun getPort(client: Int, port: Int): AlsaPortInfo {
+    fun getPortInfo(port: Int): AlsaPortInfo {
+        val info = AlsaPortInfo()
+        val err = Alsa.snd_seq_get_port_info(seq, port, info.handle)
+        if (err != 0)
+            throw AlsaException(err)
+        return info
+    }
+
+    @Deprecated("Use getAnyPortInfo() instead", ReplaceWith("getAnyPortInfo(client, port)"))
+    fun getPort(client: Int, port: Int): AlsaPortInfo = getAnyPortInfo(client, port)
+
+    fun getAnyPortInfo(client: Int, port: Int): AlsaPortInfo {
         val info = AlsaPortInfo()
         val err = Alsa.snd_seq_get_any_port_info(seq, client, port, info.handle)
         if (err != 0)
             throw AlsaException(err)
         return info
+    }
+
+    fun setPortInfo(port: Int, info: AlsaPortInfo) {
+        val err = Alsa.snd_seq_set_port_info(seq, port, info.handle)
+        if (err != 0)
+            throw AlsaException(err)
     }
 
     private var portNameHandle : BytePointer? = null
@@ -195,7 +212,7 @@ class AlsaSequencer(
 
     //#region Events
 
-    private  val midiEventBufferSize : Long = 256
+    private val midiEventBufferSize : Long = 256
     private var eventBufferOutput = BytePointer(midiEventBufferSize)
     private var midiEventParserOutput: snd_midi_event_t? = null
 
@@ -238,80 +255,91 @@ class AlsaSequencer(
         return ret
     }
 
-    private var midiEventParserInput: snd_midi_event_t? = null
-
-    private fun prepareEventParser() {
-        if (midiEventParserInput == null) {
-            val ptr = snd_midi_event_t()
-            Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
-            midiEventParserInput = ptr
-        }
-    }
-
-    fun receive(port: Int, data: ByteArray, index: Int, count: Int): Int {
-        var received = 0
-
-        prepareEventParser()
-
-        var remaining = true
-        while (remaining && index + received < count) {
-            val sevt = snd_seq_event_t()
-            val ret = Alsa.snd_seq_event_input(seq, sevt)
-            remaining = Alsa.snd_seq_event_input_pending(seq, 0) > 0
-            if (ret < 0)
-                throw AlsaException(ret)
-            val converted = Alsa.snd_midi_event_decode(
-                midiEventParserInput,
-                ByteBuffer.wrap(data, index + received, data.size - index - received),
-                (count - received).toLong(),
-                sevt
-            )
-            if (converted < 0)
-                throw AlsaException(converted.toInt())
-            received += converted.toInt()
-        }
-        return received
-    }
-
-    private var eventLoopStopped = false
-    private lateinit var eventLoopBuffer : ByteArray
     private val defaultInputTimeout = -1
-    private var inputTimeout: Int = 0
-    private var eventLoopTask: Job? = null
-    private lateinit var onReceived: (ByteArray, Int, Int) -> Unit
-
     fun startListening(
         applicationPort: Int,
         buffer: ByteArray,
         onReceived: (ByteArray, Int, Int) -> Unit,
         timeout: Int = defaultInputTimeout
-    ) {
-        eventLoopBuffer = buffer
-        inputTimeout = timeout
-        this.onReceived = onReceived
-        eventLoopTask = GlobalScope.launch { eventLoop (applicationPort) }
-    }
+    ) = SequencerLoopContext(seq, midiEventBufferSize).apply { startListening(applicationPort, buffer, onReceived, timeout) }
 
-    fun stopListening() {
-        eventLoopStopped = true
-    }
+    fun stopListening(loop: SequencerLoopContext) { loop.stopListening() }
 
-    private fun eventLoop(port: Int) {
+    class SequencerLoopContext(private val seq: snd_seq_t, private val midiEventBufferSize: Long) {
 
-        val pollfdSizeDummy = 8
-        val count = Alsa.snd_seq_poll_descriptors_count(seq, POLLIN.toShort())
-        val pollfdArrayRef = BytePointer((count * pollfdSizeDummy).toLong())
-        val fd = pollfd()
-        fd.put<BytePointer>(pollfdArrayRef)
-        val ret = Alsa.snd_seq_poll_descriptors(seq, fd, count, POLLIN.toShort())
-        if (ret < 0)
-            throw AlsaException (ret)
-        while (!eventLoopStopped) {
-            val rt = HackyPoll.poll(fd, count.toLong(), inputTimeout)
-            if (rt > 0) {
-                val len = receive(port, eventLoopBuffer, 0, eventLoopBuffer.size)
-                onReceived(eventLoopBuffer, 0, len)
+        private var eventLoopStopped = false
+        private lateinit var eventLoopBuffer: ByteArray
+        private var inputTimeout: Int = 0
+        private var eventLoopTask: Job? = null
+        private lateinit var onReceived: (ByteArray, Int, Int) -> Unit
+
+        fun startListening(
+            applicationPort: Int,
+            buffer: ByteArray,
+            onReceived: (ByteArray, Int, Int) -> Unit,
+            timeout: Int
+        ) {
+            eventLoopBuffer = buffer
+            inputTimeout = timeout
+            this.onReceived = onReceived
+            eventLoopTask = GlobalScope.launch { eventLoop(applicationPort) }
+        }
+
+        fun stopListening() {
+            eventLoopStopped = true
+        }
+
+        private fun eventLoop(port: Int) {
+
+            val pollfdSizeDummy = 8
+            val count = Alsa.snd_seq_poll_descriptors_count(seq, POLLIN.toShort())
+            val pollfdArrayRef = BytePointer((count * pollfdSizeDummy).toLong())
+            val fd = pollfd()
+            fd.put<BytePointer>(pollfdArrayRef)
+            val ret = Alsa.snd_seq_poll_descriptors(seq, fd, count, POLLIN.toShort())
+            if (ret < 0)
+                throw AlsaException(ret)
+            while (!eventLoopStopped) {
+                val rt = HackyPoll.poll(fd, count.toLong(), inputTimeout)
+                if (rt > 0) {
+                    val len = receive(port, eventLoopBuffer, 0, eventLoopBuffer.size)
+                    onReceived(eventLoopBuffer, 0, len)
+                }
             }
+        }
+
+        private var midiEventParserInput: snd_midi_event_t? = null
+
+        private fun prepareEventParser() {
+            if (midiEventParserInput == null) {
+                val ptr = snd_midi_event_t()
+                Alsa.snd_midi_event_new(midiEventBufferSize, ptr)
+                midiEventParserInput = ptr
+            }
+        }
+
+        fun receive(port: Int, data: ByteArray, index: Int, count: Int): Int {
+            var received = 0
+
+            prepareEventParser()
+
+            var remaining = true
+            while (remaining && index + received < count) {
+                val sevt = snd_seq_event_t()
+                val ret = Alsa.snd_seq_event_input(seq, sevt)
+                remaining = Alsa.snd_seq_event_input_pending(seq, 0) > 0
+                if (ret < 0)
+                    throw AlsaException(ret)
+                val converted = Alsa.snd_midi_event_decode(
+                    midiEventParserInput,
+                    ByteBuffer.wrap(data, index + received, data.size - index - received),
+                    (count - received).toLong(),
+                    sevt
+                )
+                if (converted > 0)
+                    received += converted.toInt()
+            }
+            return received
         }
     }
 

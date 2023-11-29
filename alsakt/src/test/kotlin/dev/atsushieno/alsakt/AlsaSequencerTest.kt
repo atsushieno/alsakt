@@ -62,7 +62,7 @@ class AlsaSequencerTest {
         if (!isAlsaAvailable) return
 
         AlsaSequencer(AlsaIOType.Input, AlsaIOMode.NonBlocking).use { seq ->
-            seq.getPort(AlsaSequencer.ClientSystem, AlsaPortInfo.PortSystemAnnouncement).use { port ->
+            seq.getAnyPortInfo(AlsaSequencer.ClientSystem, AlsaPortInfo.PortSystemAnnouncement).use { port ->
                 println(port.id)
                 println(port.name)
             }
@@ -158,7 +158,7 @@ class AlsaSequencerTest {
 
             var targetPort = 3
             try {
-                seq.getPort (lastClient, targetPort)
+                seq.getAnyPortInfo (lastClient, targetPort)
             } catch(ex: AlsaException) {
                 println ("TiMidity port #3 not available. Not testable.")
                 return // not testable
@@ -242,6 +242,7 @@ class AlsaSequencerTest {
         }
     }
 
+    /*
     // FIXME: this test assumes that Keystation is connected and available, and that user can control it
     //  (and that user notices the test console output...)
     @Test
@@ -279,6 +280,7 @@ class AlsaSequencerTest {
             }
         }
     }
+    */
 
     @Test
     fun interruptInput () {
@@ -357,7 +359,7 @@ class AlsaSequencerTest {
                 val wait = Semaphore (1, 0)
                 var cbStart = -1
                 var cbLen = -1
-                seq.startListening (appPort, data, { cbd, start, len ->
+                val loop = seq.startListening (appPort, data, { cbd, start, len ->
                     cbData = cbd
                     cbStart = start
                     cbLen = len
@@ -365,7 +367,7 @@ class AlsaSequencerTest {
                 }, 60000)
                 runBlocking {
                     wait.acquire ()
-                    seq.stopListening ()
+                    seq.stopListening (loop)
                     assertNotNull (cbData, "received data")
                     assertEquals (0, cbStart, "received start")
                     assertEquals  (3, cbLen, "received size")
