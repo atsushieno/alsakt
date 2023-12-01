@@ -224,18 +224,22 @@ class AlsaSequencer(
             midiEventParserOutput = ptr
         }
 
+        val buffer = ByteBuffer.wrap(data)
         val ev = snd_seq_event_t(eventBufferOutput)
-        for (i in index until index + count) {
-            val ret = Alsa.snd_midi_event_encode_byte(midiEventParserOutput, data[i].toInt(), ev)
+        var i = index
+        while (i < index + count) {
+            val ret = Alsa.snd_midi_event_encode(
+                midiEventParserOutput, buffer.position(i), index + count - i.toLong(), ev)
             if (ret < 0)
-                throw  AlsaException(ret)
-            if (ret == 1) {
+                throw AlsaException(ret.toInt())
+            if (ret > 0) {
                 eventBufferOutput.put(seq_evt_off_source_port, port.toByte())
                 eventBufferOutput.put(seq_evt_off_dest_client, AddressSubscribers.toByte())
                 eventBufferOutput.put(seq_evt_off_dest_port, AddressUnknown.toByte())
                 eventBufferOutput.put(seq_evt_off_queue, QueueDirect.toByte())
                 Alsa.snd_seq_event_output_direct(seq, ev)
             }
+            i += ret.toInt()
         }
     }
 
