@@ -138,6 +138,9 @@ public class Alsa implements InfoMapper {
             .put(new Info("snd_shm_area").skip()) // FIXME?
             .put(new Info("snd_seq_real_time").skip()) // FIXME?
 
+            .put(new Info("snd_seq_ev_set_variable").cppTypes("void", "snd_seq_event_t*", "long", "char *"))
+            .put(new Info("snd_seq_ev_set_sysex").cppTypes("void", "snd_seq_event_t*", "long", "char *"))
+
 //            .put(new Info("__BYTE_ORDER == __BIG_ENDIAN").define(false))
 //            .put(new Info("__inline__").skip())
             .put(new Info("pid_t").cppTypes("int"))
