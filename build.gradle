@@ -6,5 +6,5 @@ apply from: "${rootDir}/publish-root.gradle"
 
 allprojects {
     group = 'dev.atsushieno'
-    version = '0.3.4'
+    version = '0.3.5'
 }
