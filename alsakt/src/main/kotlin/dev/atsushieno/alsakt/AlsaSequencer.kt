@@ -1,12 +1,7 @@
 package dev.atsushieno.alsakt
+import dev.atsushieno.alsakt.javacpp.*
 import dev.atsushieno.alsakt.javacpp.global.Alsa
 import dev.atsushieno.alsakt.javacpp.global.HackyPoll
-import dev.atsushieno.alsakt.javacpp.pollfd
-import dev.atsushieno.alsakt.javacpp.snd_midi_event_t
-import dev.atsushieno.alsakt.javacpp.snd_seq_addr_t
-import dev.atsushieno.alsakt.javacpp.snd_seq_event_t
-import dev.atsushieno.alsakt.javacpp.snd_seq_t
-import dev.atsushieno.alsakt.javacpp.snd_seq_timestamp_t
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -225,11 +220,12 @@ class AlsaSequencer(
         }
 
         val buffer = ByteBuffer.wrap(data)
+        val pointer = BytePointer(buffer)
         val ev = snd_seq_event_t(eventBufferOutput)
         var i = index
         while (i < index + count) {
             val ret = Alsa.snd_midi_event_encode(
-                midiEventParserOutput, buffer.position(i), index + count - i.toLong(), ev)
+                midiEventParserOutput, pointer.position(i.toLong()), index + count - i.toLong(), ev)
             if (ret < 0)
                 throw AlsaException(ret.toInt())
             if (ret > 0) {
@@ -365,8 +361,22 @@ class AlsaSequencer(
 
         const val QueueDirect = 253
 
+        private val config: snd_config_t
+
+        val DEFAULT_ALSA_CONF_PATHS = "/usr/local/share/alsa/alsa.conf:/usr/share/alsa/alsa.conf"
+        val ALSA_CONF_PATHS = System.getenv("ALSAKT_CONFIG_PATH")
+            ?: System.getenv("ALSA_CONFIG_PATH")
+            ?: DEFAULT_ALSA_CONF_PATHS
+
         init {
             Loader.load(snd_seq_t::class.java) // FIXME: this should not be required...
+
+            val cfg = snd_config_t()
+            Alsa.snd_config_top(cfg)
+            val upd = snd_config_update_t()
+            Alsa.snd_config_update_r(cfg, upd, ALSA_CONF_PATHS)
+            config = cfg
+
             seq_evt_size = sizeof(snd_seq_event_t::class.java)
             seq_evt_off_source_port =
                 snd_seq_event_t.offsetof(snd_seq_event_t::class.java, "source") +
@@ -383,7 +393,7 @@ class AlsaSequencer(
 
     init {
         val ptr = snd_seq_t()
-        val err = Alsa.snd_seq_open(ptr, driverName, ioType, ioMode)
+        val err = Alsa.snd_seq_open_lconf(ptr, driverName, ioType, ioMode, config)
         if (err != 0)
             throw AlsaException(err)
         seq = ptr
